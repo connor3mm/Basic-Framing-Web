@@ -8,14 +8,17 @@
 <h1>Frame Price Estimator</h1>
 
 <p>Please enter your photo sizes to get a framing cost estimate.</p>
+
 <form action = "framing.php" method="POST">
-    <p>Photo Width: <input type = "text" name ="width" placeholder="Width"/>
+    <p>
+        Photo Width: <input type = "text" name ="width" placeholder="Width"/>
         <select name="units" id="units">
             <option value="mm" selected > mm</option>
             <option value="cm">cm</option>
             <option value="inch">inch</option>
+        </select>
+    </p>
 
-        </select></p>
     <p>Photo Height: <input type = "text" name ="height" placeholder="height"/> </p>
 
     <p>Postage:
