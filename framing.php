@@ -11,16 +11,76 @@
     <?php
     $width = strip_tags(isset($_POST["width"]) ? $_POST["width"] : "");
     $height = strip_tags(isset($_POST["height"]) ? $_POST["height"] : "");
+    $email = strip_tags(isset($_POST["email"]) ? $_POST["email"] : "");
     $units = isset($_POST["units"]) ? $_POST["units"] : "";
     $post = isset($_POST["post"]) ? $_POST["post"] : "";
     $vat = isset($_POST["vat"]) ? $_POST["vat"] : "";
 
-    if ( ($width==="") || ($height==="")) { //conditions for erroneous submission
-    //Need to output the form
-    if ($_SERVER["REQUEST_METHOD"]==="POST"){
-        echo "<p>Please complete all fields.</p>";//Error message
+
+    $emailBool = TRUE;
+    if(!filter_var($email,
+        FILTER_VALIDATE_EMAIL)){
+        $emailErr = "Invalid email format";
+        $emailBool = FALSE;
     }
-    ?>
+
+    $numVal = TRUE;
+    $heightVal = TRUE;
+    $widthVal = TRUE;
+
+    if($units === "cm") {
+        if($height < 20 || $height > 200 ){
+            $heightVal = FALSE;
+            }
+            if($width < 20 || $width > 200){
+                $widthVal = FALSE;
+            }
+            if($heightVal === FALSE || $widthVal === FALSE) {
+                echo "Make sure height are width and numeric and between 20 and 200 whilst using centimeters.<br><br>";
+            }
+    }
+
+    if($units === "inch") {
+        if($height < 7.8 || $height > 78.7 ){
+            $heightVal = FALSE;
+            }
+            if($width < 7.8 || $width > 78.7){
+                $widthVal = FALSE;
+                }
+            if($heightVal === FALSE || $widthVal === FALSE){
+            echo "Make sure height are width and numeric and between 7.8 and 78.7 whilst using inches.<br><br>";
+        }
+    }
+
+    if($units === "mm") {
+        if($height < 200 || $height > 2000){
+            $heightVal = FALSE;
+            }
+        if($width < 200 || $width > 2000){
+            $widthVal = FALSE;
+            }
+        if($heightVal === FALSE || $widthVal === FALSE){
+            echo "Make sure height are width and numeric and between 200 and 2000 whilst using millimeters.<br><br>";
+        }
+    }
+
+
+    if ( ($width==="") || ($height==="") || ($email === "") || ($emailBool === FALSE) || ($heightVal === FALSE) || ($widthVal === FALSE)) { //conditions for erroneous submission
+        //Need to output the form
+    if ($_SERVER["REQUEST_METHOD"]==="POST"){
+        echo "Please complete all fields. This includes:";//Error message
+    }
+
+    if($width==="" || $widthVal === FALSE){
+        echo" WIDTH; ";
+    }
+    if($height==="" || $heightVal === FALSE){
+        echo" HEIGHT; ";
+    }
+    if($email==="" || ($emailBool === FALSE)){
+        echo" EMAIL;";
+    }
+        ?>
 
 
 <p>Please enter your photo sizes to get a framing cost estimate.</p>
@@ -31,10 +91,9 @@
             <option value="mm" <?php if($units === "mm") echo "selected"; ?>> mm</option>
             <option value="cm" <?php if($units === "cm") echo "selected"; ?>> cm</option>
             <option value="inch" <?php if($units === "inch") echo "selected"; ?>> inch</option>
-
         </select></p>
 
-    <p>Photo height: <input type = "text" name ="height" placeholder="height" value="<?php echo $height; ?>"/> </p>
+    <p>Photo Height: <input type = "text" name ="height" placeholder="Height" value="<?php echo $height; ?>"/> </p>
 
     <p>Postage:
             <input type="radio" name="post" value="economy"<?php if($post === "economy") echo "checked"; ?>> Economy
@@ -46,11 +105,21 @@
         <input type="checkbox" name="vat[]" value="VAT" <?php if(isset($_POST["vat"])) echo 'checked="checked"'; ?>> Include VAT in price<br>
     </p>
 
+    <?php
+    if(($email === "") || ($emailBool === FALSE)){
+        echo "The email address should be non-empty and in a valid email format.";
+    }
+    ?>
+
+    <p>
+        Email: <input type = "text" name ="email" placeholder="email address" value="<?php echo $email; ?>"/>
+    </p>
+
     <p><input type = "submit"/> </p>
 </form>
+
     <?php
 }else{
-
         if($units === "cm") {
             $width = $width / 100;
             $height = $height / 100;
@@ -94,14 +163,27 @@
             $priceVat = number_format($priceVat, 2);
             $postageVat = number_format($postageVat, 2);
 
-            echo "<p> Your frame will cost £$priceVat plus $post postage of £$postageVat giving a total price of £$total including VAT. </p>";
+           $output = "Your frame will cost £$priceVat plus $post postage of £$postageVat giving a total price of £$total including VAT.";
+
         }else{
 
             $total = number_format($price + $postage);
             $price = number_format($price,2);
-            echo "<p> Your frame will cost £$price plus $post postage of £$postage giving a total price of £$total without VAT.</p>";
+            $output = "Your frame will cost £$price plus $post postage of £$postage giving a total price of £$total without VAT.";
         }
+
+        echo $output;
+        echo "<br><br>A confirmation email has been sent to $email";
+
+        $message = "https://devweb2020.cis.strath.ac.uk/~ykb20160/317a1/index.html";
+
+        $msg = "Thank you for shopping with us.\n$output\nPlease use the following link to place your order: $message";
+
+        // send email
+        mail($email, "Framing Confirmation", $msg);
+
     }
+
     ?>
 
 
