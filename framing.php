@@ -15,11 +15,11 @@
     $units  = isset($_POST["units"]) ? $_POST["units"] : "";
     $post   = isset($_POST["post"]) ? $_POST["post"] : "";
     $vat    = isset($_POST["vat"]) ? $_POST["vat"] : "";
+    $emailList  = isset($_POST["emailList"]) ? $_POST["emailList"] : "";
 
 
     $emailBool = TRUE;
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $emailErr  = "The email address should be non-empty and in a valid email format.";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) && isset($_POST["emailList"])) {
         $emailBool = FALSE;
     }
 
@@ -64,20 +64,17 @@
 
 
 
-    if (($width === "") || ($height === "") || ($email === "") || ($emailBool === FALSE) || ($heightVal === FALSE) || ($widthVal === FALSE)) { //conditions for erroneous submission
+    if (($emailBool === FALSE) || ($heightVal === FALSE) || ($widthVal === FALSE) || ($height === "") || ($width === "")) { //conditions for erroneous submission
         //Need to output the form
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             echo "Please complete or fix fields. This includes:"; //Error message
         }
 
-        if ($width === "" || $widthVal === FALSE) {
+        if ($widthVal === FALSE) {
             echo " WIDTH; ";
         }
-        if ($height === "" || $heightVal === FALSE) {
+        if ($heightVal === FALSE) {
             echo " HEIGHT; ";
-        }
-        if ($email === "" || ($emailBool === FALSE)) {
-            echo " EMAIL;";
         }
         ?>
 
@@ -87,26 +84,31 @@
 
     <p>Photo Width: <input type = "text" name ="width" placeholder="Width" value="<?php echo $width; ?>" />
         <select name="units" id="units">
-            <option value= "mm"   <?php if($units === "mm") echo "selected"; ?>>   mm</option>
-            <option value= "cm"   <?php if($units === "cm") echo "selected"; ?>>   cm</option>
+            <option value= "mm"   <?php if($units === "mm")   echo "selected"; ?>>   mm</option>
+            <option value= "cm"   <?php if($units === "cm")   echo "selected"; ?>>   cm</option>
             <option value= "inch" <?php if($units === "inch") echo "selected"; ?>> inch</option>
         </select></p>
 
-    <p>Photo Height: <input type = "text" name ="height" placeholder="Height" value=" <?php echo $height; ?>"/> </p>
+    <p>Photo Height: <input type = "text" name ="height" placeholder="Height" value="<?php echo $height; ?>"/> </p>
 
     <p>Postage:
-            <input type="radio" name="post" value="economy"  <?php if($post === "economy") echo "checked"; ?>> Economy
-            <input type="radio" name="post" value="rapid"    <?php if($post === "rapid") echo "checked"; ?>>   Rapid
-            <input type="radio" name="post" value="next day" <?php if($post === "nextDay") echo "checked"; ?>> Next Day
+            <input type="radio" name="post" value="economy"  <?php if($post === "economy")  echo "checked"; ?> checked> Economy
+            <input type="radio" name="post" value="rapid"    <?php if($post === "rapid")    echo "checked"; ?>> Rapid
+            <input type="radio" name="post" value="next day" <?php if($post === "next day") echo "checked"; ?>> Next Day
+    </p>
+
+
+    <p>
+        <input type="checkbox" name="vat[]" value="VAT" <?php if(isset($_POST["vat"])) echo 'checked="checked"'; ?>checked> Include VAT in price<br>
     </p>
 
     <p>
-        <input type="checkbox" name="vat[]" value="VAT" <?php if(isset($_POST["vat"])) echo 'checked="checked"'; ?>> Include VAT in price<br>
+        <input type="checkbox" name="emailList[]" value="emailList" <?php if(isset($_POST["emailList"])) echo 'checked="checked"'; ?>> Receive mail and future information about my framing calculation<br>
     </p>
 
     <?php
-    if (($email === "") || ($emailBool === FALSE)) {
-        echo $emailErr;
+    if ($emailBool === FALSE) {
+        echo "The email address should be non-empty and in a valid email format.";
     }
     ?>
 
@@ -118,21 +120,19 @@
 </form>
 
     <?php
-}else{
-        if($units === "cm") {
-            $width  = $width/100;
-            $height = $height/100;
-        }
-        else if($units === "inch"){
-            $width  = $width /39.37;
-            $height = $height/39.37;
-        }
-        else{
-            $width  = $width/1000;
-            $height = $height/1000;
+}else {
+        if ($units === "cm") {
+            $width = $width / 100;
+            $height = $height / 100;
+        } else if ($units === "inch") {
+            $width = $width / 39.37;
+            $height = $height / 39.37;
+        } else {
+            $width = $width / 1000;
+            $height = $height / 1000;
         }
 
-        $edge    = max($width, $height);
+        $edge = max($width, $height);
         $postage = 0;
 
         if ($post === "economy") {
@@ -146,41 +146,75 @@
         }
 
 
-        $area    = $width * $height;
-        $price   = round(($area * $area) + (100 * $area) + 6, 2);
+        $area = $width * $height;
+        $price = round(($area * $area) + (100 * $area) + 6, 2);
         $postage = number_format($postage, 2);
 
 
-
         if ($vat) {
-            $priceVat   = $price + ($price * 0.2);
+            $priceVat = $price + ($price * 0.2);
             $postageVat = $postage + ($postage * 0.2);
 
-            $total      = number_format($priceVat + $postageVat, 2);
-            $priceVat   = number_format($priceVat, 2);
+            $total = number_format($priceVat + $postageVat, 2);
+            $priceVat = number_format($priceVat, 2);
             $postageVat = number_format($postageVat, 2);
 
             $output = "Your frame will cost £$priceVat plus $post postage of £$postageVat giving a total price of £$total including VAT.";
 
-        }else{
+        } else {
 
-            $total  = number_format($price + $postage);
-            $price  = number_format($price, 2);
+            $total = number_format($price + $postage);
+            $price = number_format($price, 2);
             $output = "Your frame will cost £$price plus $post postage of £$postage giving a total price of £$total without VAT.";
         }
 
         echo $output;
-        echo "<br><br>A confirmation email has been sent to $email";
 
-        $message = "https://devweb2020.cis.strath.ac.uk/~ykb20160/317a1/index.html";
+        if (isset($_POST["emailList"])) {
+            echo "<br><br>A confirmation email has been sent to $email";
 
-        $msg = "Thank you for shopping with us.\n$output\nPlease use the following link to place your order: $message";
+            $message = "https://devweb2020.cis.strath.ac.uk/~ykb20160/317a1/index.html";
+            $msg = "Thank you for shopping with us.\n$output\nPlease use the following link to place your order: $message";
 
-        // send email
-        mail($email, "Framing Confirmation", $msg);
+            // send email
+            mail($email, "Framing Confirmation", $msg);
 
+
+
+            //Connect to MySQL
+            $host = "devweb2021.cis.strath.ac.uk";
+            $user = "ykb20160";
+            $pass = "Lahngahqu0ao";
+            $dbname = "ykb20160";
+            $conn = new mysqli($host, $user, $pass, $dbname);
+
+            if ($conn->connect_error) {
+                die("Connection failed : " . $conn->connect_error); //FIXME remove once working.
+            }
+
+            $date = date('d-m-y h:i:s');
+
+
+            $total = number_format($price + $postage);
+            $width = number_format($width, 2);
+            $height = number_format($height, 2);
+            $sql = "INSERT INTO `framingrequests` (`id`, `width`, `height`, `postage`, `email`, `price`, `time`) VALUES (NULL,'$width','$height','$post','$email','$total','$date')";
+
+            $result = $conn->query($sql);
+
+            /*
+            //Issue the query
+            $sql = "SELECT * FROM `framingrequests` WHERE  `id` =$id";
+            $result = $conn->query($sql);
+
+            if (!$result){
+                die("Query failed ".$conn->error); //FIXME remove once working.
+            }
+        */
+            //Disconnect
+            $conn->close();
+        }
     }
-
     ?>
 
 </div>
