@@ -76,6 +76,9 @@
         if ($heightVal === FALSE) {
             echo " HEIGHT; ";
         }
+        if($emailBool === FALSE){
+            echo "EMAIL;";
+        }
         ?>
 
 
@@ -122,13 +125,13 @@
     <?php
 }else {
         if ($units === "cm") {
-            $width = $width / 100;
+            $width  = $width / 100;
             $height = $height / 100;
         } else if ($units === "inch") {
-            $width = $width / 39.37;
+            $width  = $width / 39.37;
             $height = $height / 39.37;
         } else {
-            $width = $width / 1000;
+            $width  = $width / 1000;
             $height = $height / 1000;
         }
 
@@ -147,24 +150,24 @@
 
 
         $area = $width * $height;
-        $price = round(($area * $area) + (100 * $area) + 6, 2);
+        $price   = round(($area * $area) + (100 * $area) + 6, 2);
         $postage = number_format($postage, 2);
 
 
         if ($vat) {
-            $priceVat = $price + ($price * 0.2);
+            $priceVat   = $price + ($price * 0.2);
             $postageVat = $postage + ($postage * 0.2);
 
-            $total = number_format($priceVat + $postageVat, 2);
-            $priceVat = number_format($priceVat, 2);
+            $total      = round($priceVat + $postageVat,2);
+            $priceVat   = number_format($priceVat, 2);
             $postageVat = number_format($postageVat, 2);
 
             $output = "Your frame will cost £$priceVat plus $post postage of £$postageVat giving a total price of £$total including VAT.";
 
         } else {
 
-            $total = number_format($price + $postage);
-            $price = number_format($price, 2);
+            $total  = round($price + $postage,2);
+            $price  = number_format($price, 2);
             $output = "Your frame will cost £$price plus $post postage of £$postage giving a total price of £$total without VAT.";
         }
 
@@ -174,43 +177,34 @@
             echo "<br><br>A confirmation email has been sent to $email";
 
             $message = "https://devweb2020.cis.strath.ac.uk/~ykb20160/317a1/index.html";
-            $msg = "Thank you for shopping with us.\n$output\nPlease use the following link to place your order: $message";
+            $msg     = "Thank you for shopping with us.\n$output\nPlease use the following link to place your order: $message";
 
-            // send email
+            //Send email
             mail($email, "Framing Confirmation", $msg);
 
 
+            //Connecting to DB and inserting into it
+            require_once "password.php";
 
             //Connect to MySQL
-            $host = "devweb2021.cis.strath.ac.uk";
-            $user = "ykb20160";
-            $pass = "Lahngahqu0ao";
+            $host   = "devweb2021.cis.strath.ac.uk";
+            $user   = "ykb20160";
+            $pass   = get_password();
             $dbname = "ykb20160";
-            $conn = new mysqli($host, $user, $pass, $dbname);
-
-            if ($conn->connect_error) {
-                die("Connection failed : " . $conn->connect_error); //FIXME remove once working.
-            }
-
-            $date = date('d-m-y h:i:s');
+            $conn   = new mysqli($host, $user, $pass, $dbname);
 
 
-            $total = number_format($price + $postage);
-            $width = number_format($width, 2);
+            $date   = date('d-m-y h:i:s');
+            $total  = round($price + $postage,2);
+            $width  = number_format($width, 2);
             $height = number_format($height, 2);
+
+
             $sql = "INSERT INTO `framingrequests` (`id`, `width`, `height`, `postage`, `email`, `price`, `time`) VALUES (NULL,'$width','$height','$post','$email','$total','$date')";
 
             $result = $conn->query($sql);
 
-            /*
-            //Issue the query
-            $sql = "SELECT * FROM `framingrequests` WHERE  `id` =$id";
-            $result = $conn->query($sql);
 
-            if (!$result){
-                die("Query failed ".$conn->error); //FIXME remove once working.
-            }
-        */
             //Disconnect
             $conn->close();
         }
