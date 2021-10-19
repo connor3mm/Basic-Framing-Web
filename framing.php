@@ -111,7 +111,7 @@
 
     <?php
     if ($emailBool === FALSE) {
-        echo "The email address should be non-empty and in a valid email format.";
+        echo "The email address should be non-empty and in a valid email format: example@mail.com";
     }
     ?>
 
@@ -158,7 +158,7 @@
             $priceVat   = $price + ($price * 0.2);
             $postageVat = $postage + ($postage * 0.2);
 
-            $total      = round($priceVat + $postageVat,2);
+            $total      = number_format($priceVat + $postageVat,2);
             $priceVat   = number_format($priceVat, 2);
             $postageVat = number_format($postageVat, 2);
 
@@ -166,7 +166,7 @@
 
         } else {
 
-            $total  = round($price + $postage,2);
+            $total  = number_format($price + $postage,2);
             $price  = number_format($price, 2);
             $output = "Your frame will cost £$price plus $post postage of £$postage giving a total price of £$total without VAT.";
         }
@@ -195,7 +195,7 @@
 
 
             $date   = date('d-m-y h:i:s');
-            $total  = round($price + $postage,2);
+            $total  = number_format($price + $postage,2);
             $width  = number_format($width, 2);
             $height = number_format($height, 2);
 
