@@ -33,10 +33,10 @@
    require_once "password.php";
 
     //Connect to MySQL
-    $host   = "devweb2021.cis.strath.ac.uk";
-    $user   = "ykb20160";
+    $host   = "";
+    $user   = "";
     $pass   = get_password();
-    $dbname = "ykb20160";
+    $dbname = "";
     $conn   = new mysqli($host, $user, $pass, $dbname);
 
     //Issue the query
